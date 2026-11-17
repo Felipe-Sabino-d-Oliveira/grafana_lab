@@ -1,12 +1,112 @@
-version: '3'
+# Define os serviços que compõem a infraestrutura
 services:
+  # Aplicação principal desenvolvida em Python com Flask
   carnivorous-garden:
+
+    # Configuração para construção da imagem Docker
     build:
-      context: .
-      dockerfile: Dockerfile
-    ports: 
-      - 5005:5000
+      context: .  # Diretório utilizado como contexto de construção (o atual)
+      dockerfile: # Nome do arquivo responsável pela construção da imagem
+
+    # Define um nome personalizado para o container
+    container_name:
+
+    # Configura o mapeamento de portas entre host e container
+    ports:
+      -
+
+    # Compartilha arquivos entre a máquina host e o container
+    # A aplicação deverá disponibilizar seus logs para o Alloy através da pasta logs/app.log
     volumes:
-      - ./logs:/app/logs/ 
-  
-    
+      -
+
+    # Conecta o serviço à rede interna da infraestrutura
+    networks:
+      - loki
+
+    # Define a política de reinicialização do container
+    restart: 
+
+
+  # Serviço responsável pela coleta e encaminhamento dos logs
+  alloy:
+
+    # Imagem oficial do Grafana Alloy
+    image:
+
+    # Disponibiliza a interface web de gerenciamento do Alloy
+    ports:
+      -
+
+    # Compartilha o arquivo de configuração e os logs da aplicação
+    volumes:
+      -
+      -
+
+    # Define o comando de inicialização e o caminho do arquivo de configuração
+    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+
+    # Define os serviços que precisam ser iniciados antes do Alloy
+    depends_on:
+      -
+      -
+
+    networks:
+      - loki
+
+
+  # Serviço responsável pelo armazenamento e consulta dos logs
+  loki:
+
+    # Imagem oficial do Grafana Loki
+    image:
+
+    # Disponibiliza a API HTTP do Loki
+    ports:
+      -
+
+    # Compartilha o arquivo de configuração e os dados armazenados
+    volumes:
+      -
+
+    # Define o arquivo de configuração utilizado pelo Loki
+    command: -config.file=/etc/loki/local-config.yaml
+
+    networks:
+      - loki
+
+
+  # Serviço responsável pela visualização e análise dos dados
+  grafana:
+
+    # Imagem oficial do Grafana
+    image:
+
+    # Configurações de autenticação e acesso
+    environment:
+      # Define o papel dos usuários anônimos
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+
+      # Habilita o acesso sem autenticação
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+
+      # Desabilita a autenticação básica
+      - GF_AUTH_BASIC_ENABLED=false
+
+    # Disponibiliza a interface web do Grafana
+    ports:
+      -
+
+    # Configurar o provisionamento automático da fonte de dados Loki.
+    # Pesquise como utilizar entrypoint, Shell e heredoc (EOF)
+    # para criar o arquivo de configuração automaticamente.
+    entrypoint:
+
+    networks:
+      - loki
+
+# Define a rede interna compartilhada pelos serviços
+networks:
+  loki:
+    # Utiliza o driver bridge para comunicação entre containers
+    driver: bridge

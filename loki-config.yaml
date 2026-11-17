@@ -1,0 +1,105 @@
+# Desabilita a autenticação do Loki.
+# Os serviços poderão enviar e consultar logs sem autenticação.
+auth_enabled: false
+
+server:
+  # Porta HTTP utilizada para receber consultas e requisições de logs.
+  http_listen_port: 3100
+
+  # Porta utilizada para comunicação via gRPC.
+  grpc_listen_port: 9096
+
+  # Define o nível de detalhamento dos registros internos do Loki.
+  # debug fornece informações mais detalhadas para diagnóstico.
+  log_level: debug
+
+  # Define o número máximo de streams gRPC simultâneos permitidos.
+  grpc_server_max_concurrent_streams: 1000
+
+common:
+  # Endereço da instância Loki.
+  instance_addr: 127.0.0.1
+
+  # Diretório base utilizado para armazenar arquivos temporários e dados.
+  path_prefix: /tmp/loki
+
+  # Configura o armazenamento dos dados do Loki.
+  storage:
+    filesystem:
+      # Diretório onde os blocos de dados (chunks) serão armazenados.
+      chunks_directory: /tmp/loki/chunks
+
+      # Diretório destinado ao armazenamento das regras.
+      rules_directory: /tmp/loki/rules
+
+  # Define quantas cópias de cada dado serão mantidas.
+  # O valor 1 indica que não haverá replicação.
+  replication_factor: 1
+
+  # Configura o mecanismo de descoberta e comunicação entre instâncias.
+  ring:
+    kvstore:
+      # Utiliza armazenamento em memória para gerenciar o estado do ring.
+      store: inmemory
+
+query_range:
+  results_cache:
+    cache:
+      embedded_cache:
+        # Habilita o cache interno para resultados de consultas.
+        enabled: true
+
+        # Define o tamanho máximo do cache em megabytes.
+        max_size_mb: 100
+
+limits_config:
+  # Habilita a agregação de métricas.
+  metric_aggregation_enabled: true
+
+schema_config:
+  configs:
+    - # Define a data inicial de utilização deste esquema de armazenamento.
+      from: 2020-10-24
+
+      # Utiliza TSDB como mecanismo de armazenamento dos índices.
+      store: tsdb
+
+      # Define o sistema de armazenamento dos dados.
+      object_store: filesystem
+
+      # Versão do esquema utilizado para organizar os índices.
+      schema: v13
+
+      index:
+        # Prefixo utilizado nos nomes dos arquivos de índice.
+        prefix: index_
+
+        # Define o período de criação dos índices.
+        # Neste caso, um novo período é criado a cada 24 horas.
+        period: 24h
+
+pattern_ingester:
+  # Habilita a identificação de padrões nos registros.
+  enabled: true
+
+  metric_aggregation:
+    # Endereço do Loki utilizado para enviar métricas agregadas.
+    loki_address: localhost:3100
+
+ruler:
+  # Endereço do Alertmanager responsável por receber alertas.
+  alertmanager_url: http://localhost:9093
+
+frontend:
+  # Define o formato de codificação utilizado na comunicação do frontend.
+  encoding: protobuf
+
+# Por padrão, o Loki envia estatísticas anônimas de utilização e configuração
+# para a Grafana Labs. Essas informações ajudam a compreender o uso da ferramenta
+# e melhorar seu desempenho e desenvolvimento.
+#
+# Caso queira desabilitar o envio dessas estatísticas,
+# remova os comentários das linhas abaixo:
+#
+# analytics:
+#   reporting_enabled: false

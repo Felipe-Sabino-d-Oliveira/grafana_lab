@@ -7,7 +7,7 @@ import threading
 import logging
 from sqlalchemy.exc import IntegrityError
 
-# Configure logging
+
 logging.basicConfig(
     filename="./logs/app.log",
     level=logging.INFO,
@@ -36,7 +36,7 @@ class Plant(db.Model):
 
 @app.route('/')
 def index():
-    error_mode = session.get('error_mode', False)  # Get the current error mode state
+    error_mode = session.get('error_mode', False)
     return render_template('index.html', error_mode=error_mode)
 
 @app.route('/signup', methods=['GET', 'POST'])
@@ -160,7 +160,7 @@ def on_disconnect():
 def simulate_plant_data():
     while True:
         with app.app_context():
-            socketio.sleep(2)  # Sleep for 10 seconds
+            socketio.sleep(2)
             for user_id, user_info in list(active_users.items()):
                 try:
                     if user_info['error_mode'] and randint(0, 1):
