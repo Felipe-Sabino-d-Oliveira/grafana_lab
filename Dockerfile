@@ -4,11 +4,10 @@ FROM python:3.12-slim
 # Define o ambiente de trabalho dentro do container
 WORKDIR /app
 
-# Instalar dependências do sistema operacional (se necessário)
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
-    musl-dev \
-    python3-dev
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copiar a lista de dependências Python para o container
 COPY requirements.txt .
