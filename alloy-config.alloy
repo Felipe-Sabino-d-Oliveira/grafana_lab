@@ -1,0 +1,49 @@
+// Localiza os arquivos de log que serão monitorados pelo Alloy.
+local.file_match "applogs" {
+    // Define o caminho do arquivo de log da aplicação.
+    // O Alloy irá acompanhar esse arquivo para identificar novos registros.
+    path_targets = [{"__path__" = "/tmp/app-logs/app.log"}]
+}
+
+// Lê os registros dos arquivos encontrados pelo bloco local.file_match.
+loki.source.file "local_files" {
+    // Utiliza os arquivos identificados em local.file_match.
+    targets    = local.file_match.applogs.targets
+
+    // Encaminha os registros coletados para a etapa de processamento.
+    forward_to = [loki.process.add_new_label.receiver]
+}
+
+// Processa os registros de log antes de enviá-los ao Loki.
+loki.process "add_new_label" {
+
+    // Interpreta os registros no formato logfmt e extrai o campo "level".
+    // O valor encontrado em "level" será armazenado na variável extracted_level.
+    stage.logfmt {
+        mapping = {
+            "extracted_level" = "level",
+        }
+    }
+
+    // Transforma o valor extraído em um label do Loki.
+    // Isso permite filtrar os logs pelo nível, como INFO, ERROR ou WARNING.
+    stage.labels {
+        values = {
+            "level" = "extracted_level",
+        }
+    }
+
+    // Encaminha os registros processados para o componente responsável pelo envio.
+    forward_to = [loki.write.local_loki.receiver]
+}
+
+// Envia os registros de log processados para o servidor Loki.
+loki.write "local_loki" {
+    endpoint {
+        // Endereço da API HTTP do Loki utilizada para receber os logs.
+        // "loki" é o nome do serviço na rede Docker.
+        // A porta 3100 é a porta HTTP padrão do Loki.
+        // /loki/api/v1/push é o endpoint de ingestão de logs.
+        url = "http://loki:3100/loki/api/v1/push"
+    }
+}
