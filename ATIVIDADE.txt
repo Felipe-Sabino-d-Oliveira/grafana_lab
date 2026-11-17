@@ -1,0 +1,5 @@
+1 Configurar Dockerfile
+2 Configurar docker-compose
+3 Testar execução dos serviços (Containers Docker, App python na porta 5005, Grafana na porta 3000, Loki através do Grafana)
+4 Executar no mínimo 3 consultas no Grafana
+5 Registrar tudo para ser anexado na atividade
